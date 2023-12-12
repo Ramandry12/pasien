@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Input dan Output</title>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.0"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <style>
+    .new-data {
+      background-color: yellow;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .delete-button {
+      padding: 2px 6px;
+      font-size: 12px;
+      background-color: #f44336;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Gaya cetak khusus */
+    @media print {
+      th {
+        white-space: nowrap;
+      }
+
+      td, th {
+        padding: 4px;
+      }
+    }
+  </style>
+</head>
+<body x-data="{ tab: 'input' }">
+  <h1>Form Pasien</h1>
+  <div>
+    <button x-on:click="tab = 'input'" :class="{ 'active': tab === 'input' }">Input Data</button>
+    <button x-on:click="tab = 'output'" :class="{ 'active': tab === 'output' }">Output Data</button>
+  </div>
+  <div x-show="tab === 'input'">
+    <h2>Input Data Pasien</h2>
+    <form id="formPasien">
+      <label for="noRM">No Rekam Medis:</label><br>
+      <input type="text" id="noRM" required><br><br>
+      <label for="nama">Nama:</label><br>
+      <input type="text" id="nama" required><br><br>
+      <label for="poli">Poli/Ranap:</label><br>
+      <input type="text" id="poli" required><br><br>
+      <label for="tanggal">Tanggal:</label><br>
+      <input type="date" id="tanggal" placeholder="Pilih Tanggal"><br><br>
+      <label for="krisis">Krisis:</label><br>
+      <input type="text" id="krisis" required><br><br>
+      <label for="kesan">Kesan:</label><br>
+      <input type="text" id="kesan" required><br><br>
+      <label for="klinik">Klinik:</label><br>
+      <input type="text" id="klinik" required><br><br>
+      <label for="usulan">Usulan:</label><br>
+      <input type="text" id="usulan" required><br><br>
+      <label for="hasil">Hasil:</label><br>
+      <input type="text" id="hasil" required><br><br>
+      <label for="dokter">Dokter:</label><br>
+      <input type="text" id="dokter" required><br><br>
+      <label for="foto">Foto:</label><br>
+      <input type="file" id="gambar"><br><br>
+      <img id="preview" src="#" alt="Preview Gambar" style="max-width: 600px;"><br><br>
+      <div class="image-preview" id="image-preview"></div> 
+      <button type="submit">Tambah</button>
+    </form>
+  </div>
+  <div x-show="tab === 'output'">
+    <h2>Output Data Pasien</h2>
+    <table style="border-collapse: collapse; width: 100%;">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>No RM</th>
+          <th>Nama</th>
+          <th>Poli</th>
+          <th>Tanggal</th>
+          <th>Krisis</th>
+          <th>Kesan</th>
+          <th>Klinik</th>
+          <th>Usulan</th>
+          <th>Hasil</th>
+          <th>Dokter</th>         
+          <th>Foto</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tbodyPasien"></tbody>
+    </table>
+    <button onclick="printTable()">Cetak</button>
+  </div>
+  <script>
+    const formPasien = document.getElementById('formPasien');
+    const tbodyPasien = document.getElementById('tbodyPasien');
+    const dataPasien = [];
+
+    formPasien.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const noRM = document.getElementById('noRM').value;
+      const nama = document.getElementById('nama').value;
+      const poli = document.getElementById('poli').value;
+      const tanggal = document.getElementById('tanggal').value;
+      const krisis = document.getElementById('krisis').value;
+      const kesan = document.getElementById('kesan').value;
+      const klinik = document.getElementById('klinik').value;
+      const usulan = document.getElementById('usulan').value;
+      const hasil = document.getElementById('hasil').value;
+      const dokter = document.getElementById('dokter').value;
+      const foto = document.getElementById('gambar').files[0];
+
+      const pasien = {
+        noRM,
+        nama,
+        poli,
+        tanggal,
+        krisis,
+        kesan,
+        klinik,
+        usulan,
+        hasil,
+        dokter,
+        foto,
+      };
+
+      dataPasien.push(pasien);
+
+      updateTable();
+
+      document.getElementById('noRM').value = '';
+      document.getElementById('nama').value = '';
+      document.getElementById('poli').value = '';
+      document.getElementById('tanggal').value = '';
+      document.getElementById('krisis').value = '';
+      document.getElementById('kesan').value = '';
+      document.getElementById('klinik').value = '';
+      document.getElementById('usulan').value = '';
+      document.getElementById('hasil').value = '';
+      document.getElementById('dokter').value = '';
+      document.getElementById('gambar').value = null;
+    });
+
+    function deleteDataPasien(index) {
+      dataPasien.splice(index, 1);
+      updateTable();
+    }
+
+    function updateTable() {
+      tbodyPasien.innerHTML = '';
+
+      if (dataPasien.length > 0) {
+        dataPasien.forEach(function(pasien, index) {
+          const row = document.createElement('tr');
+          const noCell = document.createElement('td');
+          const noRMCell = document.createElement('td');
+          const namaCell = document.createElement('td');
+          const poliCell = document.createElement('td');
+          const tanggalCell = document.createElement('td');
+          const krisisCell = document.createElement('td');
+          const kesanCell = document.createElement('td');
+          const klinikCell = document.createElement('td');
+          const usulanCell = document.createElement('td');
+          const hasilCell = document.createElement('td');
+          const dokterCell = document.createElement('td');
+          const fotoCell = document.createElement('td');
+          const actionCell = document.createElement('td');
+
+          noCell.textContent = index + 1;
+          noRMCell.textContent = pasien.noRM;
+          namaCell.textContent = pasien.nama;
+          poliCell.textContent = pasien.poli;
+          tanggalCell.textContent = pasien.tanggal;
+          krisisCell.textContent = pasien.krisis;
+          kesanCell.textContent = pasien.kesan;
+          klinikCell.textContent = pasien.klinik;
+          usulanCell.textContent = pasien.usulan;
+          hasilCell.textContent = pasien.hasil;
+          dokterCell.textContent = pasien.dokter;
+
+
+          if (pasien.foto) {
+            const fotoImg = document.createElement('img');
+            fotoImg.src = URL.createObjectURL(pasien.foto);
+            fotoImg.width = 100;
+            fotoImg.height = 100;
+
+            const fotoLink = document.createElement('a');
+            fotoLink.href = URL.createObjectURL(pasien.foto);
+            fotoLink.target = '_blank';
+            fotoLink.appendChild(fotoImg);
+
+            fotoCell.appendChild(fotoLink);
+          }
+
+          const tanggalInput = document.createElement('input');
+          tanggalInput.setAttribute('type', 'text');
+          tanggalInput.setAttribute('placeholder', 'Pilih Tanggal');
+          tanggalInput.setAttribute('readonly', 'readonly');
+          tanggalInput.classList.add('datepicker');
+
+          tanggalInput.addEventListener('change', function() {
+            pasien.tanggal = this.value;
+            updateTable();
+          });
+
+          tanggalCell.appendChild(tanggalInput);
+
+          const deleteButton = document.createElement('button');
+          deleteButton.textContent = 'Delete';
+          deleteButton.classList.add('delete-button');
+          deleteButton.addEventListener('click', function() {
+            deleteDataPasien(index);
+          });
+
+          actionCell.appendChild(deleteButton);
+
+          row.appendChild(noCell);
+          row.appendChild(noRMCell);
+          row.appendChild(namaCell);
+          row.appendChild(poliCell);
+          row.appendChild(tanggalCell);
+          row.appendChild(krisisCell);
+          row.appendChild(kesanCell);
+          row.appendChild(klinikCell);
+          row.appendChild(usulanCell);
+          row.appendChild(hasilCell);
+          row.appendChild(dokterCell);
+          row.appendChild(fotoCell);
+          row.appendChild(actionCell);
+
+          tbodyPasien.appendChild(row);
+
+          flatpickr(tanggalInput, {
+            dateFormat: 'Y-m-d',
+            allowInput: true
+          });
+          tanggalInput.value = pasien.tanggal;
+
+          if (index === dataPasien.length - 1) {
+            row.classList.add('new-data');
+          }
+        });
+      }
+    }
+
+    function printTable() {
+      const printWindow = window.open('', '_blank');
+      printWindow.document.open();
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Data Pasien - Cetak</title>
+          <style>
+            th, td {
+              border: 1px solid #ddd;
+              padding: 8px;
+              text-align: left;
+            }
+          </style>
+        </head>
+        <body>
+          <h2>Output Data Pasien</h2>
+          <table style="border-collapse: collapse; width: 100%;">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>No RM</th>
+                <th>Nama</th>
+                <th>Poli</th>
+                <th>Tanggal</th>
+                <th>krisis</th>  
+                <th>kesan</th>  
+                <th>klinik</th>
+                <th>usulan</th>
+                <th>hasil</th>
+                <th>dokter</th>
+                <th>Foto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${generatePrintTableRows()}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    function generatePrintTableRows() {
+      let rows = '';
+
+      if (dataPasien.length > 0) {
+        dataPasien.forEach(function(pasien, index) {
+          const row = `
+            <tr>
+              <td>${index + 1}</td>
+              <td>${pasien.noRM}</td>
+              <td>${pasien.nama}</td>
+              <td>${pasien.poli}</td>
+              <td>${pasien.tanggal}</td>
+              <td>${pasien.krisis}</td>
+              <td>${pasien.kesan}</td>
+              <td>${pasien.klinik}</td>
+              <td>${pasien.usulan}</td>
+              <td>${pasien.hasil}</td>
+              <td>${pasien.dokter}</td>
+              <td>${pasien.foto ? `<img src="${URL.createObjectURL(pasien.foto)}" width="100" height="100">` : ''}</td>
+            </tr>
+          `;
+          rows += row;
+        });
+      }
+
+      return rows;
+    }
+
+    updateTable();
+    const previewImage = document.getElementById('preview'); 
+    const gambarInput = document.getElementById('gambar');
+   
+
+    gambarInput.addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      
+      if (file) {
+        const reader = new FileReader();
+        
+        reader.addEventListener('load', function() {
+          previewImage.src = reader.result;
+        });
+        
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+</html>
